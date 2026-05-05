@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FerroFlyid: Particle-Based Ferrofluid Simulation</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.6;
+      color: #222;
+      background: #fff;
+    }
+
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+
+    header {
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 20px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 2.4rem;
+    }
+
+    h2 {
+      margin-top: 36px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #ddd;
+      font-size: 1.5rem;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 1.1rem;
+    }
+
+    p {
+      margin: 0 0 14px;
+    }
+
+    ul {
+      margin: 8px 0 0;
+      padding-left: 22px;
+    }
+
+    li {
+      margin: 6px 0;
+    }
+
+    a {
+      color: #0645ad;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .subtitle {
+      color: #444;
+      max-width: 760px;
+    }
+
+    .hero-image {
+      margin: 22px 0 28px;
+    }
+
+    .hero-image img {
+      width: 100%;
+      display: block;
+      border: 1px solid #ddd;
+      background: #000;
+    }
+
+
+    .meta {
+      margin-top: 14px;
+      color: #555;
+      font-size: 0.95rem;
+    }
+
+    .callout {
+      border: 1px solid #ddd;
+      background: #fafafa;
+      padding: 14px;
+      margin-top: 14px;
+    }
+
+    .equation {
+      overflow-x: auto;
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 12px;
+      margin: 12px 0;
+      font-family: "Times New Roman", serif;
+      font-size: 1.05rem;
+      line-height: 1.8;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    .card,
+    .figure,
+    .step {
+      border: 1px solid #ddd;
+      background: #fafafa;
+      padding: 14px;
+    }
+
+    .caption {
+      font-size: 0.92rem;
+      color: #555;
+    }
+
+    .num,
+    .tag {
+      display: block;
+      font-size: 0.8rem;
+      color: #555;
+      font-weight: bold;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    .result-media {
+      width: 100%;
+      display: block;
+      border: 1px solid #ddd;
+      background: #000;
+      margin-bottom: 10px;
+    }
+
+    .wide-figure {
+      border: 1px solid #ddd;
+      background: #fafafa;
+      padding: 14px;
+      margin-top: 16px;
+    }
+
+    .wide-figure video,
+    .wide-figure img {
+      width: 100%;
+      display: block;
+      background: #000;
+      margin-bottom: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f4f4f4;
+    }
+
+    code {
+      background: #f4f4f4;
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    @media (max-width: 640px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media print {
+      nav {
+        display: none;
+      }
+
+      body {
+        font-size: 11pt;
+      }
+
+      .page {
+        max-width: none;
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <header>
+      <div class="eyebrow">CS184 Final Project</div>
+      <h1>FerroFlyid</h1>
+      <p class="subtitle">
+        A particle-based ferrofluid simulation prototype transformed from a cloth simulator,
+        combining SPH-inspired particle motion, simplified magnetic forces, and screen-space
+        fluid rendering.
+      </p>
+      <div class="meta">
+        <span class="pill">Agatha Santoso, </span>
+        <span class="pill">Tim Nguyen, </span>
+        <span class="pill">Noah Math, </span>
+        <span class="pill">Jeremiah Harsojo, </span>
+      </div>
+    </header>
+
+    <section class="hero-image">
+      <img
+        src="images/mirror_static.png"
+        alt="Final ferrofluid render with spike-like surface"
+      />
+      <div class="wide-figure">
+        <div class="video-embed">
+          <iframe
+            src="https://youtu.be/5L5vhsdh8v0"
+            title="Final ferrofluid simulation video"
+            allowfullscreen>
+          </iframe>
+        </div>
+      </div>
+    </section>
+
+    <section id="abstract">
+      <h2>Abstract</h2>
+
+      <p>
+        FerroFlyid is a particle-based ferrofluid simulation that models fluid-like particle motion under a
+        simplified magnetic force. The goal of the project is to create a visually convincing ferrofluid prototype
+        where particles move as a cohesive liquid, react to magnet placement and strength, and render as a smooth
+        dark reflective surface instead of separate individual particles.
+      </p>
+
+      <p>
+        Our system uses an SPH-inspired particle model with local particle interactions, gravity, damping,
+        container boundaries, and configurable magnetic forces. To improve the visual result, we also built
+        a screen-space fluid rendering pipeline that smooths the raw particles into a continuous liquid surface
+        with thickness, normal filtering, and mirror-like shading.
+      </p>
+
+      <div class="callout">
+        <p>
+          <strong>Main takeaway:</strong> We achieved a visually compelling ferrofluid-like system with
+          magnetic motion and reflective liquid rendering, but true Rosensweig spike formation requires
+          more advanced magnetic surface-stress modeling than our simplified force-based approach.
+        </p>
+      </div>
+    </section>
+
+    <section id="approach">
+      <h2>Technical Approach</h2>
+
+      <h3>Overall Code Structure</h3>
+      <p>
+        Our final project still uses the original CS184 cloth simulator framework for the viewer,
+        camera, GUI, shader loading, and scene loading. However, the main active simulation is now
+        a particle-based fluid system instead of a cloth simulation. The executable is still called
+        <code>clothsim</code>, but the project mostly runs through the new fluid simulation code.
+      </p>
+
+      <p>
+        The main fluid code is in <code>fluid.cpp</code> and <code>fluid.h</code>. These files define
+        the fluid particles, simulation parameters, magnetic settings, and the main simulation step.
+        The solver interface is handled through files in the <code>solver/</code> folder. The main SPH-style
+        backend wraps around <code>FluidSim</code>, while other CPU/Eulerian and CUDA-related files are
+        present but not always part of the main active path.
+      </p>
+
+      <p>
+        Rendering is handled mostly through <code>clothSimulator.cpp</code>, even though the name still
+        comes from the original project. This file now controls the fluid drawing path, including raw
+        particle rendering, marching-cubes surface rendering, and screen-space fluid rendering.
+      </p>
+
+      <h3>Particle Simulation</h3>
+      <p>
+        The fluid is made of many particles. Each particle stores its position and velocity. During each
+        frame, the simulator also computes extra values such as density, pressure, acceleration, and
+        magnetic force values using temporary arrays.
+      </p>
+
+      <p>
+        One simulation step works like this: first, the code builds a grid so each particle can quickly
+        find nearby particles. Then it estimates density and pressure from nearby particles. After that,
+        it adds different forces such as gravity, pressure, viscosity, cohesion, repulsion, and magnetic
+        forces. Finally, the particle velocities and positions are updated, and boundary collisions are
+        handled so the particles stay inside the container.
+      </p>
+
+      <div class="grid">
+        <div class="step">
+          <span class="num">01</span>
+          <h3>Build grid</h3>
+          <p>Put particles into a uniform grid so nearby particles can be found faster.</p>
+        </div>
+
+        <div class="step">
+          <span class="num">02</span>
+          <h3>Compute fluid values</h3>
+          <p>Estimate density and pressure using nearby particles.</p>
+        </div>
+
+        <div class="step">
+          <span class="num">03</span>
+          <h3>Apply forces</h3>
+          <p>Add gravity, pressure, viscosity, cohesion, repulsion, and magnetic forces.</p>
+        </div>
+
+        <div class="step">
+          <span class="num">04</span>
+          <h3>Update particles</h3>
+          <p>Move particles forward in time and keep them inside the container.</p>
+        </div>
+      </div>
+
+      <h3>Fluid Behavior</h3>
+      <p>
+        Our fluid behavior is SPH-inspired, but it is not a fully exact physical SPH solver. The code
+        uses nearby particles to make the particle group behave more like a liquid. Pressure helps push
+        particles apart when they get too dense. Viscosity damps relative motion between nearby
+        particles. Repulsion prevents particles from collapsing into each other, while cohesion pulls
+        nearby particles together to make the fluid look more connected.
+      </p>
+
+      <p>
+        To make the simulation more stable, the code also includes optional incompressibility correction.
+        This helps reduce clumping and keeps particles from becoming too compressed. Parameters such as
+        <code>simulation_substeps</code>, <code>damping</code>, <code>smoothing_radius</code>,
+        <code>pressure_k</code>, <code>viscosity</code>, <code>surface_tension</code>, and
+        <code>repulsion_k</code> control how the fluid moves and how stable it is.
+      </p>
+
+      <h3>Magnetic Behavior</h3>
+      <p>
+        To create ferrofluid-like behavior, we added magnetic force models that deform the particles
+        based on magnetic field settings. The simpler model pulls particles toward stronger magnetic
+        field regions. We also added a more advanced Huang-inspired model that computes induced magnetic
+        moments and pairwise magnetic forces between particles.
+      </p>
+
+      <p>
+        The magnetic behavior can be controlled through scene parameters such as magnet position,
+        magnet strength, magnetic field direction, susceptibility, and force limits. Some scenes use
+        a vertical magnetic field and a circular dish setup to create spike-like ferrofluid patterns.
+      </p>
+
+      <p>
+        Our magnetic model is still an approximation. It can create Rosensweig-like visuals, but it
+        does not fully solve real ferrofluid physics. The spike behavior comes from simplified
+        particle interactions, magnetic forces, parameter tuning, and rendering.
+      </p>
+
+      <h3>Magnetic Equations</h3>
+
+      <p>
+        For the magnetic equation, we used the paper's particle magnetic field formulation as a
+        reference. In the paper, a particle with magnetic moment <em>m</em> contributes a magnetic
+        field at position <em>r</em>:
+      </p>
+
+      <div class="equation">
+        H(r, m) =
+        ((r&#770; &middot; m)(W<sub>avr</sub>(r) - W(r)))r&#770;
+        -
+        (W<sub>avr</sub>(r) / 3)m
+      </div>
+
+      <p>
+        Here, <em>r&#770;</em> is the normalized direction from the particle, <em>W(r)</em> is the smoothing
+        kernel, and <em>W<sub>avr</sub>(r)</em> is an averaged version of the kernel inside radius
+        <em>r</em>. The paper defines it as:
+      </p>
+
+      <div class="equation">
+        W<sub>avr</sub>(r) =
+        (4&pi;r<sup>3</sup> / 3)<sup>-1</sup>
+        &int;<sub>0</sub><sup>r</sup> 4&pi;&xi;<sup>2</sup>W(&xi;) d&xi;
+      </div>
+
+      <p>
+        The paper also writes the particle interactions in matrix form. The total magnetic flux
+        density can be written as:
+      </p>
+
+      <div class="equation">
+        b = Gm + h<sub>ext</sub>
+      </div>
+
+      <p>
+        The magnetic moment is related to the flux density by:
+      </p>
+
+      <div class="equation">
+        m = &Gamma;b, &nbsp;&nbsp;
+        &Gamma; = V &chi; / (1 + &chi;)
+      </div>
+
+      <p>
+        Substituting this into the previous equation gives the linear system:
+      </p>
+
+      <div class="equation">
+        (G&Gamma; - I)b = -h<sub>ext</sub>
+      </div>
+
+      <p>
+        In our code, this idea is used as a simplified Huang-style particle interaction model. We do
+        not solve the full real-world ferrofluid equations exactly, but this gave us a better way to
+        approximate induced magnetic moments and particle-to-particle magnetic forces.
+      </p>
+
+      <h3>Rendering Pipeline</h3>
+      <p>
+        Rendering was one of the most important parts of the project. If we draw the particles directly,
+        the fluid looks like a group of small balls. To make it look more like a continuous ferrofluid,
+        we added surface rendering methods.
+      </p>
+
+      <p>
+        The project supports raw particle rendering, marching-cubes surface rendering, and screen-space
+        fluid rendering. The screen-space renderer works by first drawing particles into depth and
+        thickness buffers. Then the buffers are smoothed so the particles blend together. After that,
+        the renderer estimates surface normals and applies final liquid shading with reflection,
+        absorption, and a dark ferrofluid-like material.
+      </p>
+
+      <div class="grid">
+        <div class="step">
+          <span class="num">01</span>
+          <h3>Depth pass</h3>
+          <p>Draw particles into a screen-space depth buffer.</p>
+        </div>
+
+        <div class="step">
+          <span class="num">02</span>
+          <h3>Thickness pass</h3>
+          <p>Accumulate thickness so the fluid has more volume on screen.</p>
+        </div>
+
+        <div class="step">
+          <span class="num">03</span>
+          <h3>Smoothing</h3>
+          <p>Blur the depth and thickness buffers to hide individual particles.</p>
+        </div>
+
+        <div class="step">
+          <span class="num">04</span>
+          <h3>Final shading</h3>
+          <p>Use normals, reflection, and dark liquid shading for the ferrofluid look.</p>
+        </div>
+      </div>
+
+      <h3>Scene Files and Export</h3>
+      <p>
+        The simulation is controlled through JSON scene files. These files let us change the particle
+        layout, particle count, gravity, damping, magnet position, magnet strength, rendering mode, and
+        export settings without changing the code. This made it easier to compare scenes such as no
+        magnet, weak magnet, strong magnet, uniform magnetic field, and spike-focused tests.
+      </p>
+
+      <p>
+        The project can also export PNG frame sequences using the <code>-E</code> flag. This lets us render
+        animations frame by frame and then combine them into a video afterward. The code can also save
+        particle snapshots as JSON files, which is useful for rerendering or debugging.
+      </p>
+
+      <h3>Performance</h3>
+      <p>
+        To make neighbor lookup faster, the SPH particle solver uses a uniform spatial grid. This avoids
+        checking every particle against every other particle in the basic neighbor search. Some loops also
+        use OpenMP when available. There are CUDA-related files in the codebase, but in the current build
+        path CUDA is disabled, so those files should be treated as experimental or unused rather than the
+        main active implementation.
+      </p>
+
+      <h3>Limitations</h3>
+      <p>
+        The project successfully creates fluid-like particle motion, magnetic deformation, and smooth
+        ferrofluid-style rendering. However, it is still an approximation. The fluid model is stabilized
+        and simplified, the magnetic model is not a full real-world ferrofluid solver, and the spike-like
+        results depend on scene setup, parameter tuning, and rendering choices.
+      </p>
+
+      <p>
+        Overall, our project demonstrates a visually convincing particle-based ferrofluid prototype, while
+        still being honest that true physical ferrofluid spike formation would require a more advanced
+        simulation model.
+      </p>
+    </section>
+
+    <section id="challenges">
+      <h2>Problems Encountered and How We Tackled Them</h2>
+
+      <div class="grid">
+        <div class="card">
+          <span class="tag">Problem</span>
+          <h3>Particles looked like balls</h3>
+          <p>
+            Early renders exposed the individual particle discs, making the fluid look like a ball
+            pit instead of a continuous liquid.
+          </p>
+          <p>
+            <strong>Fix:</strong> We increased screen-space overlap, tuned splat radius, added
+            depth and thickness blur passes, and filtered normals to hide bead-like highlights.
+          </p>
+        </div>
+
+        <div class="card">
+          <span class="tag">Problem</span>
+          <h3>Unstable motion</h3>
+          <p>
+            Strong forces could cause particles to move chaotically, spray outward, or bounce
+            unnaturally against the container.
+          </p>
+          <p>
+            <strong>Fix:</strong> We tuned damping, added pressure behavior, improved boundary
+            handling, and used constraint projection to make the simulation more controlled.
+          </p>
+        </div>
+
+        <div class="card">
+          <span class="tag">Problem</span>
+          <h3>Shading looked wrong</h3>
+          <p>
+            Some versions looked too translucent, too blue, or too bead-like under mirror shading.
+          </p>
+          <p>
+            <strong>Fix:</strong> We added scene-controlled shading presets, used mirror-like and
+            translucent modes for different tests, and tuned normal filtering and cubemap lighting.
+          </p>
+        </div>
+
+        <div class="card">
+          <span class="tag">Problem</span>
+          <h3>True spikes were difficult</h3>
+          <p>
+            The simulation could produce magnet-driven deformation, but it tended to create
+            rounded or churned structures instead of sharp Rosensweig crowns.
+          </p>
+          <p>
+            <strong>Conclusion:</strong> This limitation appears to come from the simplified
+            physics model. True ferrofluid spikes require explicit magnetic surface-stress modeling.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="results">
+      <h2>Results</h2>
+
+      <p>
+        Our final system produces ferrofluid-like particle motion with a smooth reflective surface.
+        The strongest results came from combining magnetic particle behavior with screen-space fluid
+        rendering, which helped the particle simulation look more like a continuous dark liquid.
+      </p>
+
+      <div class="grid">
+        <div class="figure">
+          <img
+            class="result-media"
+            src="images/black_static.png"
+            alt="Dark ferrofluid render with spike-like surface"
+          />
+          <div class="caption">
+            Final black ferrofluid render. The screen-space fluid renderer blends the particles into a
+            continuous dark surface with reflective highlights and spike-like forms.
+          </div>
+        </div>
+
+        <div class="figure">
+          <img
+            class="result-media"
+            src="images/mirror_static.png"
+            alt="Mirror-like ferrofluid render with stronger highlights"
+          />
+          <div class="caption">
+            Mirror-shaded render. This view makes the surface shape easier to see because the strong
+            highlights show the cone-like peaks and the smoother liquid base.
+          </div>
+        </div>
+      </div>
+
+    <div class="wide-figure">
+      <img
+        src="images/spike-formation-low-particle-count-equilibrium-state.gif"
+        alt="Low particle count stable equilibrium ferrofluid simulation"
+      />
+      <div class="caption">
+        Low particle count stable equilibrium. With about 27k particles, the simulation reaches a
+        stable state, but the lower resolution makes the ferrofluid look more rounded and blobby.
+      </div>
+    </div>
+
+    <div class="wide-figure">
+      <img
+        src="images/spike-formation-low-particle-count-unstable-equilibrium.gif"
+        alt="Low particle count unstable equilibrium ferrofluid simulation"
+      />
+      <div class="caption">
+        Low particle count unstable equilibrium. This test shows how strong magnetic and fluid forces
+        can create unstable motion before the system settles, which helped us debug damping,
+        pressure, and force limits.
+      </div>
+    </div>
+
+    <div class="wide-figure">
+      <img
+        src="images/spike-formation-high-particle-count-incomplete.gif"
+        alt="High particle count incomplete spike formation ferrofluid simulation"
+      />
+      <div class="caption">
+        High particle count spike formation. This version uses roughly twice as many particles as the
+        low-count tests, so the spike formation becomes clearer. We recommend watching it slowly
+        because the spike growth is easier to see near the end. The render is incomplete because
+        the higher particle count greatly increased rendering time.
+      </div>
+    </div>
+
+      <p>
+        Overall, these results show both the strength and limitation of our approach. Higher particle
+        counts make the Rosensweig-like spike pattern more visible, but they also increase the cost of
+        rendering. Lower particle counts are faster and more stable to test, but they produce a smoother,
+        blob-like surface instead of sharper spikes.
+      </p>
+    </section>
+
+    <section id="lessons">
+      <h2>Lessons Learned</h2>
+
+      <p>
+        The biggest lesson from this project is that fluid realism depends on both simulation and
+        rendering. Even when the underlying simulation is simplified, the visual result can improve
+        dramatically with good surface reconstruction, normal filtering, and material shading. In our
+        case, the difference between raw particles and the final liquid render was one of the most
+        important parts of the project.
+      </p>
+
+      <p>
+        We also learned that ferrofluids are difficult because the visible spikes are not just caused
+        by particles being attracted to a magnet. True Rosensweig patterns come from a balance
+        between gravity, surface tension, pressure, and magnetic stress at the fluid interface. Our
+        SPH-inspired particle model can approximate magnet-driven deformation, but a more
+        physically accurate solver would need to model those interface stresses more directly.
+      </p>
+
+      <div class="callout">
+        <p>
+          <strong>Future work:</strong> A natural next step would be a Navier-Stokes or hybrid
+          free-surface backend with explicit magnetic pressure or stress at the interface, while
+          keeping our current SPH path as a faster selectable prototype.
+        </p>
+      </div>
+    </section>
+
+    <section id="references">
+      <h2>References</h2>
+
+      <p>
+        We used the following papers and course materials as technical references. Our
+        implementation is inspired by these works, but simplified for the scope and timeline of the
+        final project.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Reference</th>
+            <th>How we used it</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr>
+            <td>
+              Xiao et al.,
+              <em>Fast, High-Quality Rendering of Liquids Generated Using Large-Scale SPH Simulation</em>,
+              JCGT 2018.
+            </td>
+            <td>
+              Inspired our screen-space fluid rendering pipeline, including particle splatting,
+              smoothing, normal filtering, and smooth liquid surface reconstruction.
+            </td>
+          </tr>
+
+          <tr>
+            <td>Huang et al., ferrofluid / SPH magnetic simulation reference.</td>
+            <td>
+              Inspired our simulation direction and magnetic-particle thinking, though our final
+              magnetic model is simplified and does not fully reproduce the paper's physical
+              formulation.
+            </td>
+          </tr>
+
+          <tr>
+            <td>CS184 Homework 4 Cloth Simulation Skeleton.</td>
+            <td>
+              Provided the original codebase that we transformed from a mass-spring cloth simulator
+              into our ferrofluid prototype.
+            </td>
+          </tr>
+
+          <tr>
+            <td>CS184 lectures on physical simulation, fluid simulation, lighting, and rendering.</td>
+            <td>
+              Provided background on particle systems, numerical simulation, rendering, materials,
+              and the graphics pipeline.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="contributions">
+      <h2>Contributions</h2>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Tim</h3>
+          <ul>
+            <li>Implemented the main final ferrofluid simulation behavior.</li>
+            <li>Worked on magnetic force behavior and spike-focused scenes.</li>
+            <li>Improved fluid-like particle interactions and parameter tuning.</li>
+            <li>Worked on performance improvements and CUDA-based experiments for faster testing.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>Agatha</h3>
+          <ul>
+            <li>Worked on initial planning and checkpoint</li>
+            <li>Set up the first particle-based prototype from the cloth simulator structure.</li>
+            <li>Added the basic particle update loop, gravity, and container boundary behavior.</li>
+            <li>Created comparison scenes for different magnet settings and worked on testing.</li>
+            <li>Worked on the final project webpage.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>Jeremiah</h3>
+          <ul>
+            <li>Worked on initial project planning and setup.</li>
+            <li>Helped test the simulation and review results.</li>
+            <li>Contributed to the presentation script.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>Noah</h3>
+          <ul>
+            <li>Handled video editing for the final deliverable.</li>
+            <li>Managed logistics and helped keep the team on track.</li>
+            <li>Created the slides and helped prepare the presentation script.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
